@@ -1,0 +1,40 @@
+CREATE TABLE trip.combined_data (
+-- I used all the data in a single table annually--
+SELECT 
+* FROM trip.01
+UNION ALL
+SELECT 
+* FROM trip.02
+UNION ALL
+SELECT 
+* FROM trip.03
+UNION ALL
+SELECT 
+* FROM trip.04
+UNION ALL
+SELECT 
+* FROM trip.05
+UNION ALL
+SELECT 
+* FROM trip.06
+UNION ALL
+SELECT 
+* FROM trip.07
+UNION ALL
+SELECT 
+* FROM trip.08
+UNION ALL
+SELECT 
+* FROM trip.09
+UNION ALL
+SELECT 
+* FROM trip.10
+UNION ALL
+SELECT 
+* FROM trip.11
+UNION ALL
+SELECT 
+* FROM trip.12
+);
+ 
+
