@@ -1,0 +1,52 @@
+
+ WITH difference_in_seconds AS (
+SELECT
+ride_id, 
+started_at,
+ended_at,
+member_casual,
+start_station_name,
+timestampdiff(SECOND ,  started_at , ended_at) AS seconds
+FROM trip.combined_data
+),
+
+differences AS (
+SELECT
+ride_id, 
+started_at,
+ended_at,
+seconds,
+member_casual,
+start_station_name,
+MOD (seconds , 60) AS seconds_part,
+MOD (seconds , 3600) AS minutes_part,
+MOD (seconds , 3600 *24) AS hours_part
+FROM difference_in_seconds
+)
+SELECT
+ride_id, 
+started_at,
+ended_at,
+start_station_name,
+dayname(started_at) AS start_day,
+dayname(ended_at) AS end_day,
+member_casual,
+CONCAT(
+FLOOR(seconds / 3600 / 24) , 'days',
+FLOOR(hours_part / 3600) , 'hours',
+FLOOR(minutes_part /60) , 'minutes',
+seconds_part , 'seconds'
+) AS difference
+FROM differences
+WHERE member_casual= 'member' 
+group by end_day , start_day , difference , start_station_name
+
+
+
+
+
+
+
+
+
+ 
