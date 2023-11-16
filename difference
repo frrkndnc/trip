@@ -1,52 +1,98 @@
-
- WITH difference_in_seconds AS (
-SELECT
-ride_id, 
-started_at,
-ended_at,
-member_casual,
-start_station_name,
-timestampdiff(SECOND ,  started_at , ended_at) AS seconds
-FROM trip.combined_data
+WITH difference_in_seconds AS (
+  SELECT
+    started_at,
+    ended_at,
+    member_casual,
+    TIMESTAMPDIFF(SECOND, started_at, ended_at) AS seconds
+  FROM
+    trip.combined_trip
 ),
-
 differences AS (
-SELECT
-ride_id, 
-started_at,
-ended_at,
-seconds,
-member_casual,
-start_station_name,
-MOD (seconds , 60) AS seconds_part,
-MOD (seconds , 3600) AS minutes_part,
-MOD (seconds , 3600 *24) AS hours_part
-FROM difference_in_seconds
+  SELECT
+    started_at,
+    ended_at,
+    seconds,
+    member_casual,
+    MOD(seconds, 60) AS seconds_part,
+    MOD(seconds, 3600) AS minutes_part,
+    MOD(seconds, 3600 * 24) AS hours_part
+  FROM
+    difference_in_seconds
+),
+average_difference AS (
+  SELECT
+    AVG(CASE WHEN member_casual = 'member' THEN seconds END) AS avg_member_seconds,
+    MAX(CASE WHEN member_casual = 'member' THEN seconds END) AS max_member_seconds,
+    AVG(CASE WHEN member_casual = 'casual' THEN seconds END) AS avg_casual_seconds,
+    MAX(CASE WHEN member_casual = 'casual' THEN seconds END) AS max_casual_seconds,
+    AVG(seconds) AS avg_seconds,
+    MAX(seconds) AS max_seconds
+  FROM
+    differences
+),
+ride_counts AS (
+  SELECT
+    member_casual,
+    COUNT(*) AS ride_count
+  FROM
+    differences
+  GROUP BY
+    member_casual
 )
+
 SELECT
-ride_id, 
-started_at,
-ended_at,
-start_station_name,
-dayname(started_at) AS start_day,
-dayname(ended_at) AS end_day,
-member_casual,
-CONCAT(
-FLOOR(seconds / 3600 / 24) , 'days',
-FLOOR(hours_part / 3600) , 'hours',
-FLOOR(minutes_part /60) , 'minutes',
-seconds_part , 'seconds'
-) AS difference
-FROM differences
-WHERE member_casual= 'member' 
-group by end_day , start_day , difference , start_station_name
-
-
-
-
-
-
-
-
-
- 
+  'Summary' AS summary_type,
+  ride_counts.member_casual,
+  ride_count,
+  total_rides,
+  CONCAT(
+    FLOOR(avg_ride_length / 86400), ' days ',
+    FLOOR((avg_ride_length % 86400) / 3600), ' hours ',
+    FLOOR(((avg_ride_length % 86400) % 3600) / 60), ' minutes ',
+    FLOOR(avg_ride_length % 60), ' seconds'
+  ) AS avg_ride_length,
+  CONCAT(
+    FLOOR(max_ride_length / 86400), ' days ',
+    FLOOR((max_ride_length % 86400) / 3600), ' hours ',
+    FLOOR(((max_ride_length % 86400) % 3600) / 60), ' minutes ',
+    FLOOR(max_ride_length % 60), ' seconds'
+  ) AS max_ride_length,
+  CONCAT(
+    FLOOR(avg_member_ride_length / 86400), ' days ',
+    FLOOR((avg_member_ride_length % 86400) / 3600), ' hours ',
+    FLOOR(((avg_member_ride_length % 86400) % 3600) / 60), ' minutes ',
+    FLOOR(avg_member_ride_length % 60), ' seconds'
+  ) AS avg_member_ride_length,
+  CONCAT(
+    FLOOR(max_member_ride_length / 86400), ' days ',
+    FLOOR((max_member_ride_length % 86400) / 3600), ' hours ',
+    FLOOR(((max_member_ride_length % 86400) % 3600) / 60), ' minutes ',
+    FLOOR(max_member_ride_length % 60), ' seconds'
+  ) AS max_member_ride_length,
+  CONCAT(
+    FLOOR(avg_casual_ride_length / 86400), ' days ',
+    FLOOR((avg_casual_ride_length % 86400) / 3600), ' hours ',
+    FLOOR(((avg_casual_ride_length % 86400) % 3600) / 60), ' minutes ',
+    FLOOR(avg_casual_ride_length % 60), ' seconds'
+  ) AS avg_casual_ride_length,
+  CONCAT(
+    FLOOR(max_casual_ride_length / 86400), ' days ',
+    FLOOR((max_casual_ride_length % 86400) / 3600), ' hours ',
+    FLOOR(((max_casual_ride_length % 86400) % 3600) / 60), ' minutes ',
+    FLOOR(max_casual_ride_length % 60), ' seconds'
+  ) AS max_casual_ride_length
+FROM
+  ride_counts
+CROSS JOIN
+  (
+    SELECT
+      COUNT(*) AS total_rides,
+      AVG(seconds) AS avg_ride_length,
+      MAX(seconds) AS max_ride_length,
+      AVG(CASE WHEN member_casual = 'member' THEN seconds END) AS avg_member_ride_length,
+      MAX(CASE WHEN member_casual = 'member' THEN seconds END) AS max_member_ride_length,
+      AVG(CASE WHEN member_casual = 'casual' THEN seconds END) AS avg_casual_ride_length,
+      MAX(CASE WHEN member_casual = 'casual' THEN seconds END) AS max_casual_ride_length
+    FROM
+      differences
+  ) AS summary_stats;
