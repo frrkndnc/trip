@@ -3,6 +3,8 @@ WITH difference_in_seconds AS (
     started_at,
     ended_at,
     member_casual,
+    rideable_type,
+    start_station_name,
     TIMESTAMPDIFF(SECOND, started_at, ended_at) AS seconds
   FROM
     trip.combined_trip
@@ -13,6 +15,8 @@ differences AS (
     ended_at,
     seconds,
     member_casual,
+    rideable_type,
+    start_station_name,
     MOD(seconds, 60) AS seconds_part,
     MOD(seconds, 3600) AS minutes_part,
     MOD(seconds, 3600 * 24) AS hours_part
@@ -29,70 +33,71 @@ average_difference AS (
     MAX(seconds) AS max_seconds
   FROM
     differences
-),
-ride_counts AS (
-  SELECT
-    member_casual,
-    COUNT(*) AS ride_count
-  FROM
-    differences
-  GROUP BY
-    member_casual
 )
 
 SELECT
-  'Summary' AS summary_type,
-  ride_counts.member_casual,
-  ride_count,
-  total_rides,
+  d.member_casual,
+  d.rideable_type,
+  d.start_station_name,
+  COUNT(*) AS total_rides,
+  SUM(CASE WHEN d.member_casual = 'member' THEN 1 ELSE 0 END) AS member_rides,
+  SUM(CASE WHEN d.member_casual = 'casual' THEN 1 ELSE 0 END) AS casual_rides,
+  DAYNAME(d.started_at) AS start_day,
+  DAYNAME(d.ended_at) AS end_day,
+  CASE 
+    WHEN DAYNAME(d.started_at) IN ('Saturday', 'Sunday') THEN 'Weekend'
+    ELSE 'Weekday'
+  END AS day_type,
   CONCAT(
-    FLOOR(avg_ride_length / 86400), ' days ',
-    FLOOR((avg_ride_length % 86400) / 3600), ' hours ',
-    FLOOR(((avg_ride_length % 86400) % 3600) / 60), ' minutes ',
-    FLOOR(avg_ride_length % 60), ' seconds'
-  ) AS avg_ride_length,
+    FLOOR(d.seconds / 86400), ' days ',
+    FLOOR((d.seconds % 86400) / 3600), ' hours ',
+    FLOOR((d.seconds % 3600) / 60), ' minutes ',
+    d.seconds % 60, ' seconds'
+  ) AS ride_length,
   CONCAT(
-    FLOOR(max_ride_length / 86400), ' days ',
-    FLOOR((max_ride_length % 86400) / 3600), ' hours ',
-    FLOOR(((max_ride_length % 86400) % 3600) / 60), ' minutes ',
-    FLOOR(max_ride_length % 60), ' seconds'
+    FLOOR(ad.avg_seconds / 86400), ' days ',
+    FLOOR((ad.avg_seconds % 86400) / 3600), ' hours ',
+    FLOOR(((ad.avg_seconds % 86400) % 3600) / 60), ' minutes ',
+    FLOOR(ad.avg_seconds % 60), ' seconds'
+  ) AS average_ride_length,
+  CONCAT(
+    FLOOR(ad.max_seconds / 86400), ' days ',
+    FLOOR((ad.max_seconds % 86400) / 3600), ' hours ',
+    FLOOR(((ad.max_seconds % 86400) % 3600) / 60), ' minutes ',
+    FLOOR(ad.max_seconds % 60), ' seconds'
   ) AS max_ride_length,
   CONCAT(
-    FLOOR(avg_member_ride_length / 86400), ' days ',
-    FLOOR((avg_member_ride_length % 86400) / 3600), ' hours ',
-    FLOOR(((avg_member_ride_length % 86400) % 3600) / 60), ' minutes ',
-    FLOOR(avg_member_ride_length % 60), ' seconds'
+    FLOOR(ad.avg_member_seconds / 86400), ' days ',
+    FLOOR((ad.avg_member_seconds % 86400) / 3600), ' hours ',
+    FLOOR(((ad.avg_member_seconds % 86400) % 3600) / 60), ' minutes ',
+    FLOOR(ad.avg_member_seconds % 60), ' seconds'
   ) AS avg_member_ride_length,
   CONCAT(
-    FLOOR(max_member_ride_length / 86400), ' days ',
-    FLOOR((max_member_ride_length % 86400) / 3600), ' hours ',
-    FLOOR(((max_member_ride_length % 86400) % 3600) / 60), ' minutes ',
-    FLOOR(max_member_ride_length % 60), ' seconds'
+    FLOOR(ad.max_member_seconds / 86400), ' days ',
+    FLOOR((ad.max_member_seconds % 86400) / 3600), ' hours ',
+    FLOOR(((ad.max_member_seconds % 86400) % 3600) / 60), ' minutes ',
+    FLOOR(ad.max_member_seconds % 60), ' seconds'
   ) AS max_member_ride_length,
   CONCAT(
-    FLOOR(avg_casual_ride_length / 86400), ' days ',
-    FLOOR((avg_casual_ride_length % 86400) / 3600), ' hours ',
-    FLOOR(((avg_casual_ride_length % 86400) % 3600) / 60), ' minutes ',
-    FLOOR(avg_casual_ride_length % 60), ' seconds'
+    FLOOR(ad.avg_casual_seconds / 86400), ' days ',
+    FLOOR((ad.avg_casual_seconds % 86400) / 3600), ' hours ',
+    FLOOR(((ad.avg_casual_seconds % 86400) % 3600) / 60), ' minutes ',
+    FLOOR(ad.avg_casual_seconds % 60), ' seconds'
   ) AS avg_casual_ride_length,
   CONCAT(
-    FLOOR(max_casual_ride_length / 86400), ' days ',
-    FLOOR((max_casual_ride_length % 86400) / 3600), ' hours ',
-    FLOOR(((max_casual_ride_length % 86400) % 3600) / 60), ' minutes ',
-    FLOOR(max_casual_ride_length % 60), ' seconds'
+    FLOOR(ad.max_casual_seconds / 86400), ' days ',
+    FLOOR((ad.max_casual_seconds % 86400) / 3600), ' hours ',
+    FLOOR(((ad.max_casual_seconds % 86400) % 3600) / 60), ' minutes ',
+    FLOOR(ad.max_casual_seconds % 60), ' seconds'
   ) AS max_casual_ride_length
 FROM
-  ride_counts
-CROSS JOIN
-  (
-    SELECT
-      COUNT(*) AS total_rides,
-      AVG(seconds) AS avg_ride_length,
-      MAX(seconds) AS max_ride_length,
-      AVG(CASE WHEN member_casual = 'member' THEN seconds END) AS avg_member_ride_length,
-      MAX(CASE WHEN member_casual = 'member' THEN seconds END) AS max_member_ride_length,
-      AVG(CASE WHEN member_casual = 'casual' THEN seconds END) AS avg_casual_ride_length,
-      MAX(CASE WHEN member_casual = 'casual' THEN seconds END) AS max_casual_ride_length
-    FROM
-      differences
-  ) AS summary_stats;
+  differences d
+JOIN
+  average_difference ad ON 1 = 1
+WHERE
+  d.member_casual IN ('member', 'casual')
+GROUP BY
+  d.member_casual, d.rideable_type, d.start_station_name, start_day, end_day, day_type, ride_length, average_ride_length, max_ride_length,
+  avg_member_ride_length, max_member_ride_length, avg_casual_ride_length, max_casual_ride_length;
+  
+  
