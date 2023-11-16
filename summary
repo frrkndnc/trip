@@ -1,32 +1,22 @@
-Common Table Expressions (CTEs):
+Calculation of Ride Durations:
 
-difference_in_seconds: Calculates the duration of each trip in seconds using the TIMESTAMPDIFF function.
+The code calculates the duration of each trip in seconds by subtracting the started_at timestamp from the ended_at timestamp.
+It breaks down the duration into parts such as seconds, minutes, and hours.
+Statistical Analysis:
 
-differences: Breaks down the duration into parts (seconds, minutes, hours) using the MOD function.
+The code then calculates various statistics for both member and casual rides, including average and maximum ride durations.
+These statistics are computed separately for member and casual rides.
+Day and Time Analysis:
 
-average_difference: Computes average and maximum durations for member, casual, and overall trips using conditional aggregation.
+The code extracts the day of the week (both for the start and end times) and categorizes each trip as either a weekday or weekend ride.
+Presentation of Results:
 
-ride_counts: Counts the number of rides for each member_casual category.
+The final result set includes detailed information for each ride, such as start and end times, rideable type, start station name, day of the week, and ride duration.
+Additionally, it provides average and maximum ride durations for both member and casual rides.
+Most Common Start Station:
 
-Main Query:
+The query also includes information on the most common start station name and its count, providing insights into the popular starting points for rides.
+Grouping and Filtering:
 
-Selects information about individual trips along with calculated values for ride length, average ride length, and maximum ride length.
-
-The CONCAT function is used to format the ride length values into a more human-readable format in terms of days, hours, minutes, and seconds.
-
-The DAYNAME function is used to get the day of the week for the trip's start and end times.
-
-The main query also includes a CROSS JOIN to combine data from the ride_counts and summary_stats CTEs, creating a summary table.
-
-Results and Output:
-
-The final output includes summary information for each category (member, casual, and total) along with detailed information for individual trips.
-
-The summary information includes ride counts, total rides, average ride length, and maximum ride length for each category.
-
-Formatting:
-
-The results are formatted to provide information in a more readable form, breaking down ride lengths into days, hours, minutes, and seconds.
-Conclusion:
-
-The code is designed to provide detailed and summary statistics for trips, distinguishing between member and casual rides.
+The data is grouped by member type, rideable type, start station name, day of the week, and other relevant parameters.
+Filtering is applied to include only member and casual rides.
