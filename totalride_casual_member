@@ -9,8 +9,8 @@ WITH ride_durations AS (
 )
 
 SELECT
-  day_of_week,
   member_casual,
+
   COUNT(*) AS total_rides,
   CONCAT(
     FLOOR(SUM(seconds) / 86400), ' days ',
@@ -27,4 +27,4 @@ SELECT
 FROM
   ride_durations
 GROUP BY
-  day_of_week, member_casual;
+member_casual;
