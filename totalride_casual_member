@@ -5,7 +5,7 @@ WITH ride_durations AS (
     rideable_type,
     TIMESTAMPDIFF(SECOND, started_at, ended_at) AS seconds
   FROM
-    trip.combined_trip
+    trip.combined_data
 )
 
 SELECT
@@ -28,3 +28,18 @@ FROM
   ride_durations
 GROUP BY
 member_casual;
+
+
+--The ride_durations Common Table Expression (CTE) is created by selecting relevant columns from the trip.combined_data table. It extracts the day of the week, user type (member_casual), rideable type, and the duration of each ride in seconds.
+
+--The main query then selects information from the ride_durations CTE and calculates the following statistics grouped by member_casual:
+
+    total_rides: Count of total rides.
+    total_ride_length: Total duration of rides formatted as days, hours, minutes, and seconds.
+    avg_ride_length: Average duration of rides formatted similarly.
+
+--The results are grouped by the member_casual column.
+
+--The time-related calculations are done by converting the duration from seconds to days, hours, minutes, and seconds.
+
+--This query provides insights into the total number of rides, total ride duration, and average ride duration for each user type (member or casual). It's a useful way to analyze and compare the ride patterns of different user segments.
