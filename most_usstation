@@ -41,3 +41,21 @@ FROM (
 ) AS combined
 WHERE
   row_num = 1;
+
+
+
+##This SQL query analyzes ride durations based on start and end station names, providing information about the stations with the highest ride counts for both starting and ending points. Here's a breakdown of the query:
+
+1)Common Table Expression (CTE):
+
+   ride_durations: Extracts relevant information such as start and end times, start and end station names, and the duration of each ride in seconds. It filters out rides where start and end station names are not valid.
+2)Main Query:
+
+--Creates a result set using a UNION ALL of two subqueries.
+   The first subquery counts the number of rides for each unique start station name and assigns a row number based on the descending order of ride counts.
+   The second subquery does the same for end station names.
+   The UNION ALL combines the results of both subqueries.
+   The outer query selects the station type ('Start Station' or 'End Station'), station name, and ride count for each station with the highest ride count.
+
+3)The ROW_NUMBER() function is used to assign a row number to each station based on the descending order of ride counts within its category.
+  The WHERE row_num = 1 condition filters out only the stations with the highest ride count.
