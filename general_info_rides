@@ -94,3 +94,22 @@ GROUP BY
   d.started_at, d.ended_at, d.member_casual, d.rideable_type, d.start_station_name,
   start_day, end_day, ride_length, average_ride_length, max_ride_length,
   avg_member_ride_length, max_member_ride_length, avg_casual_ride_length, max_casual_ride_length;
+
+
+1)Common Table Expressions (CTEs):
+
+--difference_in_seconds: Calculates the duration of each ride in seconds.
+--differences: Breaks down the duration into parts (seconds, minutes, hours) using the MOD function.
+--average_difference: Calculates average and maximum ride durations for both member and casual users.
+2)Main Query:
+
+--Selects information from the differences CTE and joins it with the average_difference CTE using a constant condition (CROSS JOIN).
+--Groups the results by various factors, including start and end times, user type (member_casual), rideable type, and start station name.
+     Calculates various metrics:
+     ride_count: Count of rides.
+    start_day and end_day: Day of the week for the start and end times.
+    ride_length: The total duration of each ride formatted in days, hours, minutes, and seconds.
+    average_ride_length: Average ride duration formatted similarly.
+    max_ride_length: Maximum ride duration formatted similarly.
+3)Similar metrics for member and casual users separately.
+4)The query provides detailed insights into ride patterns, including counts, day of the week information, total ride duration, average ride duration, and maximum ride duration. The results are grouped by various dimensions, offering a comprehensive analysis.
