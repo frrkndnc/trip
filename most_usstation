@@ -1,0 +1,43 @@
+WITH ride_durations AS (
+  SELECT
+    started_at,
+    ended_at,
+    start_station_name,
+    end_station_name,
+    TIMESTAMPDIFF(SECOND, started_at, ended_at) AS seconds
+  FROM
+    trip.combined_trip
+  WHERE
+    start_station_name IS NOT NULL AND start_station_name <> '' AND
+    end_station_name IS NOT NULL AND end_station_name <> ''
+)
+
+SELECT
+  station_type,
+  station_name,
+  ride_count
+FROM (
+  SELECT
+    'Start Station' AS station_type,
+    start_station_name AS station_name,
+    COUNT(*) AS ride_count,
+    ROW_NUMBER() OVER (ORDER BY COUNT(*) DESC) AS row_num
+  FROM
+    ride_durations
+  GROUP BY
+    start_station_name
+
+  UNION ALL
+
+  SELECT
+    'End Station' AS station_type,
+    end_station_name AS station_name,
+    COUNT(*) AS ride_count,
+    ROW_NUMBER() OVER (ORDER BY COUNT(*) DESC) AS row_num
+  FROM
+    ride_durations
+  GROUP BY
+    end_station_name
+) AS combined
+WHERE
+  row_num = 1;
