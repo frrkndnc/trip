@@ -35,3 +35,18 @@ ORDER BY
   total_rides DESC
 LIMIT 20;
 
+
+##This SQL query analyzes ride durations based on months and rideable types, providing insights into the total number of rides, total ride duration, and average ride duration. Here's a breakdown of the query:
+
+1)Common Table Expression (CTE):
+
+    ride_durations: Extracts relevant information such as the month, day of the week, user type (member_casual), rideable type, and the duration of each ride in seconds. It filters rides to only include those with a valid month (between 1 and 12).
+2)Main Query:
+
+  Selects information from the ride_durations CTE.
+  Groups the results by month and rideable type.
+  Calculates various metrics:
+  total_rides: Count of rides.
+  total_ride_length: Total ride duration formatted in days, hours, minutes, and seconds.
+  avg_ride_length: Average ride duration formatted similarly.
+3)The results are ordered by total rides in descending order and limited to the top 20 records.
