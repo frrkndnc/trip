@@ -1,1 +1,37 @@
+WITH ride_durations AS (
+  SELECT
+    MONTH(started_at) AS month,
+    DAYNAME(started_at) AS day_of_week,
+    member_casual,
+    rideable_type,
+    TIMESTAMPDIFF(SECOND, started_at, ended_at) AS seconds
+  FROM
+    trip.combined_trip
+  WHERE
+    MONTH(started_at) BETWEEN 1 AND 12
+)
+
+SELECT
+  month,
+  rideable_type,
+  COUNT(*) AS total_rides,
+  CONCAT(
+    FLOOR(SUM(seconds) / 86400), ' days ',
+    FLOOR((SUM(seconds) % 86400) / 3600), ' hours ',
+    FLOOR(((SUM(seconds) % 86400) % 3600) / 60), ' minutes ',
+    FLOOR(SUM(seconds) % 60), ' seconds'
+  ) AS total_ride_length,
+  CONCAT(
+    FLOOR(AVG(seconds) / 86400), ' days ',
+    FLOOR((AVG(seconds) % 86400) / 3600), ' hours ',
+    FLOOR(((AVG(seconds) % 86400) % 3600) / 60), ' minutes ',
+    FLOOR(AVG(seconds) % 60), ' seconds'
+  ) AS avg_ride_length
+FROM
+  ride_durations
+GROUP BY
+  month, rideable_type
+ORDER BY
+  total_rides DESC
+LIMIT 20;
 
