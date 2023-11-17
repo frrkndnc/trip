@@ -3,6 +3,8 @@ WITH difference_in_seconds AS (
     started_at,
     ended_at,
     member_casual,
+    rideable_type,
+    start_station_name,
     TIMESTAMPDIFF(SECOND, started_at, ended_at) AS seconds
   FROM
     trip.combined_trip
@@ -13,6 +15,8 @@ differences AS (
     ended_at,
     seconds,
     member_casual,
+    rideable_type,
+    start_station_name,
     MOD(seconds, 60) AS seconds_part,
     MOD(seconds, 3600) AS minutes_part,
     MOD(seconds, 3600 * 24) AS hours_part
@@ -35,6 +39,9 @@ SELECT
   d.started_at,
   d.ended_at,
   d.member_casual,
+  d.rideable_type,
+  d.start_station_name,
+  COUNT(*) AS ride_count,
   DAYNAME(d.started_at) AS start_day,
   DAYNAME(d.ended_at) AS end_day,
   CONCAT(
@@ -83,4 +90,7 @@ FROM
   differences d
 JOIN
   average_difference ad ON 1 = 1 -- A constant condition to ensure a CROSS JOIN
-
+GROUP BY
+  d.started_at, d.ended_at, d.member_casual, d.rideable_type, d.start_station_name,
+  start_day, end_day, ride_length, average_ride_length, max_ride_length,
+  avg_member_ride_length, max_member_ride_length, avg_casual_ride_length, max_casual_ride_length;
